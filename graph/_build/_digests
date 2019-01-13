@@ -1,4 +1,0 @@
-"Rule: ocaml: cmo* -> byte (%=graph )": "\253w\201F\214\245\200)\169O\252ju<F\197"
-"Rule: ocaml: ml -> cmo & cmi (%=graph )": "\012\248\014\136`\128Q\222\219\200$\019\193\191N("
-"Resource: /home/infliu/user-src/advance-compiler/graph/graph.ml": "@\161z.Xy\187\170\131`[\024\201\n$!"
-"Rule: ocaml dependencies ml (%=graph )": "\138\007\015\244\195\030\175j\213\245\211-\253\136>\232"
