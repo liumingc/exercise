@@ -69,7 +69,7 @@ let print_graph g =
     let visited = ref SSet.empty in
     let rec print_node n width =
       printf "%s" n.value;
-      if SSet.mem n.value !visited then printf "\n"
+      if SSet.mem n.value !visited then printf ".\n"
       else begin
         visited := SSet.add n.value !visited;
         let first = ref true in
@@ -86,7 +86,7 @@ let print_graph g =
             print_node succ (width+5)
           end
         ) n.succ;
-        if List.length n.succ = 0 || List.length n.succ > 1 then
+        if List.length n.succ = 0 then
           printf ".\n"
       end
     in
