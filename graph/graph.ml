@@ -82,7 +82,7 @@ let print_graph g =
             rpt_print (width-1) ' ';
             printf "|\n";
             rpt_print (width-1) ' ';
-            printf "+-> ";
+            printf "+--> ";
             print_node succ (width+5)
           end
         ) n.succ;
