@@ -47,31 +47,50 @@ let add_edge g a b =
   let res = find_lst_opt (fun x -> find_node x a) g.roots in
   match res with
   | None ->
-    printf "add edge %s -> %s, empty\n" a b;
+    (*printf "add edge %s -> %s, empty\n" a b;*)
     let nodea = {value=a; succ=[nodeb]} in
     g.roots <- nodea :: g.roots;
   | Some x ->
-    printf "add edge %s -> %s, found x = %s\n" a b x.value;
+    (*printf "add edge %s -> %s, found x = %s\n" a b x.value;*)
     x.succ <- nodeb :: x.succ
 
 let g = empty_graph ()
 let (->>) a b =
   add_edge g a b
 
+let rpt_print n c =
+  for i = 0 to n do
+    printf "%c" c
+  done
+
 let print_graph g =
   iter (fun r ->
     printf "root: %s\n" r.value;
     let visited = ref SSet.empty in
-    let rec print_node n =
-      printf "%s ->" n.value;
-      if SSet.mem n.value !visited then ()
+    let rec print_node n width =
+      printf "%s" n.value;
+      if SSet.mem n.value !visited then printf "\n"
       else begin
         visited := SSet.add n.value !visited;
-        iter print_node n.succ;
-        printf ".\n"
+        let first = ref true in
+        iter (fun succ ->
+          if ! first then begin
+            first := false;
+            printf " -> ";
+            print_node succ (width+5)
+          end else begin
+            rpt_print (width-1) ' ';
+            printf "|\n";
+            rpt_print (width-1) ' ';
+            printf "+-> ";
+            print_node succ (width+5)
+          end
+        ) n.succ;
+        if List.length n.succ = 0 || List.length n.succ > 1 then
+          printf ".\n"
       end
     in
-      print_node r
+      print_node r 0
   ) g.roots
 
 let test () =
@@ -83,6 +102,9 @@ let test () =
   "e" ->> "f";
   "f" ->> "g";
   "g" ->> "e";
+  "c" ->> "b";
+  "g" ->> "h";
+  "h" ->> "i";
   print_graph g
 
 let _ =
