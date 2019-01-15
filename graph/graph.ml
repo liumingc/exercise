@@ -65,7 +65,7 @@ let rpt_print n c =
 
 let print_graph g =
   iter (fun r ->
-    printf "root: %s\n" r.value;
+    (*printf "root: %s\n" r.value;*)
     let visited = ref SSet.empty in
     let rec print_node n width =
       printf "%s" n.value;
@@ -93,7 +93,7 @@ let print_graph g =
       print_node r 0
   ) g.roots
 
-let test () =
+let build_test_graph () =
   "a" ->> "b";
   "b" ->> "c";
   "c" ->> "d";
@@ -105,7 +105,10 @@ let test () =
   "c" ->> "b";
   "g" ->> "h";
   "h" ->> "i";
-  print_graph g
+  g
 
+(*
 let _ =
-  test ()
+  let gr = build_test_graph () in
+  print_graph gr
+*)
