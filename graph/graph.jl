@@ -1,3 +1,5 @@
+module GraphMod
+
 import Base.==
 
 mutable struct Node
@@ -22,7 +24,7 @@ function hash(x::Node)
     hash(x.name)
 end
 
-function findNode(g::Graph, x::Node)
+function findnode(g::Graph, x::Node)
     visited = Set{Node}()
     function inner_find(r::Node)
         if r in visited
@@ -51,13 +53,17 @@ function findNode(g::Graph, x::Node)
 end
 
 function addedge(g::Graph, x::Node, y::Node)
-    res = findNode(g, x)
+    res = findnode(g, x)
     if res == nothing
         union!(g.roots, [x])
         res = x
     end
-    union!(res.succ, [y])
-    union!(y.pred, [res])
+    resy = findnode(g, y)
+    if resy == nothing
+        resy = y
+    end
+    union!(res.succ, [resy])
+    union!(resy.pred, [res])
 end
 
 function show(io::IO, x::Node)
@@ -89,7 +95,12 @@ function main()
     addedge(g, Node(name="a"), Node(name="c"))
     addedge(g, Node(name="b"), Node(name="c"))
     addedge(g, Node(name="c"), Node(name="a"))
+    addedge(g, Node(name="c"), Node(name="d"))
+    addedge(g, Node(name="d"), Node(name="a"))
+    addedge(g, Node(name="b"), Node(name="e"))
     show(stdout, g)
 end
 
 main()
+
+end # end module Graph
