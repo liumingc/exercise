@@ -2,14 +2,17 @@ module GraphMod
 
 import Base.==
 
+export Node, Graph, addedge, show
+
 mutable struct Node
     pred::Set # = Set()
     succ::Set # = Set()
     name::String
+    no::Int
 end
 
 function Node(; name::String)
-    Node(Set(), Set(), name)
+    Node(Set(), Set(), name, 0)
 end
 
 mutable struct Graph
@@ -66,6 +69,10 @@ function addedge(g::Graph, x::Node, y::Node)
     union!(resy.pred, [res])
 end
 
+function addedge(g::Graph, x::String, y::String)
+    addedge(g, Node(name=x), Node(name=y))
+end
+
 function show(io::IO, x::Node)
     visited = Set{Node}()
     function inner_show(n::Node, indent)
@@ -101,6 +108,6 @@ function main()
     show(stdout, g)
 end
 
-main()
+# main()
 
 end # end module Graph
