@@ -20,7 +20,7 @@ function postorder_visit(g::Graph)
             aux(c)
         end
     end
-    
+
     for r in g.roots
         aux(r)
     end
@@ -87,20 +87,6 @@ function collect_dom(g::Graph)
             break
         end
     end
-end
-
-function make_data()
-    g = Graph(Set())
-    addedge(g, "entry", "b1")
-    addedge(g, "b1", "b2")
-    addedge(g, "b1", "b3")
-    addedge(g, "b2", "exit")
-    addedge(g, "b3", "b4")
-    addedge(g, "b4", "b6")
-    addedge(g, "b6", "b4")
-    addedge(g, "b4", "b5")
-    addedge(g, "b5", "exit")
-    return g
 end
 
 function main()

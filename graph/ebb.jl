@@ -40,29 +40,6 @@ function show_ebb()
     end
 end
 
-#=
-entry -- b1 -- b2 -- exit
-         |               ^
-         |           b5 -+
-         +---- b3 -- b4 -- b6
-                     ^     |
-                     |     |
-                     +-----+
-=#
-function make_data()
-    g = Graph(Set())
-    addedge(g, "entry", "b1")
-    addedge(g, "b1", "b2")
-    addedge(g, "b1", "b3")
-    addedge(g, "b2", "exit")
-    addedge(g, "b3", "b4")
-    addedge(g, "b4", "b6")
-    addedge(g, "b6", "b4")
-    addedge(g, "b4", "b5")
-    addedge(g, "b5", "exit")
-    return g
-end
-
 function main()
     g = make_data()
     build_ebb(g)

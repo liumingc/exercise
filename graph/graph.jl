@@ -2,7 +2,7 @@ module GraphMod
 
 import Base.==
 
-export Node, Graph, addedge, show
+export Node, Graph, addedge, show, make_data
 
 mutable struct Node
     pred::Set # = Set()
@@ -62,9 +62,7 @@ function addedge(g::Graph, x::Node, y::Node)
         res = x
     end
     resy = findnode(g, y)
-    if resy == nothing
-        resy = y
-    end
+    resy == nothing && (resy = y)
     union!(res.succ, [resy])
     union!(resy.pred, [res])
 end
@@ -106,6 +104,29 @@ function main()
     addedge(g, Node(name="d"), Node(name="a"))
     addedge(g, Node(name="b"), Node(name="e"))
     show(stdout, g)
+end
+
+#=
+entry -- b1 -- b2 -- exit
+         |               ^
+         |           b5 -+
+         +---- b3 -- b4 -- b6
+                     ^     |
+                     |     |
+                     +-----+
+=#
+function make_data()
+    g = Graph(Set())
+    addedge(g, "entry", "b1")
+    addedge(g, "b1", "b2")
+    addedge(g, "b1", "b3")
+    addedge(g, "b2", "exit")
+    addedge(g, "b3", "b4")
+    addedge(g, "b4", "b6")
+    addedge(g, "b6", "b4")
+    addedge(g, "b4", "b5")
+    addedge(g, "b5", "exit")
+    return g
 end
 
 # main()

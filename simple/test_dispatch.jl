@@ -53,12 +53,13 @@ end
 function main()
     _eval(SeqAst(
         CallAst(VarAst("println"), [VarAst("a"), VarAst("b")]),
-        SeqAst(CallAst(VarAst("+"), [VarAst("c"), VarAst("d")]),
-        IfAst(
-            CallAst(VarAst("<"), [VarAst("e"), VarAst("f")]),
-            CallAst(VarAst("print"), [VarAst("yes")]),
-            CallAst(VarAst("raise"), [VarAst("no")])
-        )
+        SeqAst(
+            CallAst(VarAst("+"), [VarAst("c"), VarAst("d")]),
+            IfAst(
+                CallAst(VarAst("<"), [VarAst("e"), VarAst("f")]),
+                CallAst(VarAst("print"), [VarAst("yes")]),
+                CallAst(VarAst("raise"), [VarAst("no")])
+            )
         )
     ))
 end
