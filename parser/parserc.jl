@@ -1,6 +1,6 @@
 
 struct State
-    # run :: tokens -> expr, tokens'
+    # run :: tokens -> expr, tokens
     run::Function
 end
 
@@ -34,6 +34,11 @@ kwtbl = Dict(
     "end" => :end
 )
 
+opset = Set{Any}(
+    ['<', '=', '(', ')', '[', ']', ';', ',', '{', '}']
+)
+
+
 function skip_space(text::AbstractString)
     i = 1
     while i < length(text)
@@ -47,33 +52,32 @@ end
 
 
 function word(text::AbstractString)
-    _, text = skip_space(text)
+    ign, text = skip_space(text)
     ch = text[1]
-    if ch == '('
-        return "(", text[2:end]
-    elseif ch == ')'
-        return ")", text[2:end]
-    elseif ch == ';'
-        return ";", text[2:end]
+    if ch in opset
+        return string(ch), text[2:end]
     end
+
     i = 1
     while i < length(text)
-        if isspace(text[i])
-            i -= 1
+        if isspace(text[i]) || text[i] in opset
+            i -= 1
             break
         end
         i += 1
     end
-    return text[1:i], text[i:end]
+    return text[1:i], text[i+1:end]
 end
 
 
 function tokenize(text::AbstractString)
     lst = []
     while true
-        wd, rest = word(text)
-        push(lst, wd)
-        if length(rest) == 0
+        wd, text = word(text)
+        println("wd=|", wd, "|, rest=...")
+        # sleep(.5)
+        push!(lst, wd)
+        if length(text) <= 0
             break
         end
     end
