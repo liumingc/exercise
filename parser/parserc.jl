@@ -4,6 +4,8 @@ struct State
     run::Function
 end
 
+struct SyntaxError <: Exception end
+
 # bind :: m a -> (a -> m b) -> m b
 function bind(s::State, f::Function)
     State(tks1 -> begin
@@ -21,9 +23,22 @@ function seq(s1::State, s2::State)::State
         return e2, tks2
     end)
     =#
-    State(tks -> bind(s1, e1 -> State(tks1 ->
-        s2.run(tks1)
-    )))
+    State(tks -> bind(s1, e1 -> State(tks1 -> begin
+        e2, tks2 = s2.run(tks1)
+        return [e1, e2], tks2
+    end)))
+end
+
+function orelse(s1::State, s2::State)::State
+    State(tks -> begin
+        try
+            e1, tks = s1.run(tks)
+            return e1, tks
+        catch e
+            e2, tks = s2.run(tks)
+            return e2, tks
+        end
+    end)
 end
 
 kwtbl = Dict(
@@ -35,7 +50,7 @@ kwtbl = Dict(
 )
 
 opset = Set{Any}(
-    ['<', '=', '(', ')', '[', ']', ';', ',', '{', '}']
+    ['<', '=', '(', ')', '[', ']', ';', ',', '{', '}', '"', '\'']
 )
 
 
@@ -84,6 +99,17 @@ function tokenize(text::AbstractString)
     return lst
 end
 
+function match_word(wd)
+    State(tks -> begin
+        tk = tks[1]
+        if tk == wd
+            return tk, tks[1:end]
+        else
+            throw(SyntaxError("expect " * wd * " found " * tk))
+        end
+    end)
+end
+
 function myparse(text::AbstractString)
     #toks = split(text)
     toks = tokenize(text)
@@ -100,7 +126,7 @@ function main()
     else
         println("big")
     """)
-    println("parsing result: ", res)
+    #println("parsing result: ", res)
 end
 
 main()
