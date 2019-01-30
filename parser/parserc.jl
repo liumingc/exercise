@@ -6,37 +6,96 @@ end
 
 struct SyntaxError <: Exception end
 
-# bind :: m a -> (a -> m b) -> m b
-function bind(s::State, f::Function)
-    State(tks1 -> begin
-        ex, tks2 = s.run(tks1)
-        # f(ex) :: State
-        f(ex).run(tks2)
-    end)
-end
-
-function seq(s1::State, s2::State)::State
-    #=
+# bind :: (a -> m b) -> m a -> m b
+function bind(f::Function, s::State)::State
     State(tks -> begin
-        e1, tks1 = s1.run(tks)
-        e2, tks2 = s2.run(tks1)
-        return e2, tks2
+        ex, rst = s.run(tks)
+        if ex == nothing
+            return nothing, tks
+        else
+            return f(ex).run(rst)
+        end
     end)
-    =#
-    State(tks -> bind(s1, e1 -> State(tks1 -> begin
-        e2, tks2 = s2.run(tks1)
-        return [e1, e2], tks2
-    end)))
 end
 
 function orelse(s1::State, s2::State)::State
     State(tks -> begin
-        try
-            e1, tks = s1.run(tks)
-            return e1, tks
-        catch e
-            e2, tks = s2.run(tks)
-            return e2, tks
+        res = s1.run(tks)
+        ex1, rst = res
+        if ex1 == nothing
+            return s2.run(tks)
+        else
+            return res
+        end
+    end)
+end
+
+function seq(s1::State, s2::State)::State
+    State(tks -> begin
+        res = s1.run(tks)
+        ex1, rst = res
+        if ex1 == nothing
+            return nothing, tks
+        else
+            return s2.run(rst)
+        end
+    end)
+end
+
+function combine(s1::State, s2::State)::State
+    State(tks -> begin
+        res = s1.run(tks)
+        ex1, rst = res
+        if ex1 == nothing
+            return nothing, tks
+        else
+            res2 = s2.run(rst)
+            ex2, rst2 = res2
+            if ex2 == nothing
+                return nothing, tks
+            else
+                return [ex1, ex2], rst2
+            end
+        end
+    end)
+end
+
+function star_aux(s1::State, tks, acc::Array{})
+    while true
+        res = s1.run(tks)
+        ex, rst = res
+        # println("ex=", string(ex), ",rst=", rst, ",tks=", tks)
+        println("acc=", acc, "tks=", tks)
+        sleep(.5)
+        if ex == nothing
+            break
+        else
+            push!(acc, ex)
+            tks = rst
+        end
+    end
+    return acc, tks
+end
+
+function star(s1::State)::State
+    State(tks -> star_aux(s1, tks, []))
+end
+
+function option(s1::State)::State
+end
+
+function plus(s1::State)::State
+    combine(s1, star(s1))
+end
+
+function char_parser(ch)::State
+    State(tks -> begin
+        if isempty(tks)
+            return nothing, tks
+        elseif tks[1] == ch
+            return string(ch), tks[2:end]
+        else
+            return nothing, tks
         end
     end)
 end
@@ -117,7 +176,7 @@ function myparse(text::AbstractString)
     println(toks)
 end
 
-function main()
+function test1()
     res = myparse("""
     if a < 5
         println("small")
@@ -129,4 +188,20 @@ function main()
     #println("parsing result: ", res)
 end
 
-main()
+function test2()
+    chp = char_parser('a')
+    chstar = star(chp)
+    function aux(tks, parser)
+        res = parser.run(tks)
+        println("input=", tks, ",result=", res)
+    end
+    aux("aaab", star(chp))
+    aux("bcd", star(chp))
+    aux("aaab", plus(chp))
+    aux("bcd", plus(chp))
+end
+
+function main()
+end
+
+test2()
