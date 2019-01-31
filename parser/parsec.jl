@@ -1,19 +1,32 @@
+module Parsec
+
+export Value, Succ, Fail
+export bind, orelse, plus, star, char_parser, char_range_parser, joint, seq
 
 struct State
     # run :: tokens -> expr, tokens
     run::Function
 end
 
-struct SyntaxError <: Exception end
+abstract type Value end
 
-# bind :: (a -> m b) -> m a -> m b
+struct Fail <: Value
+    msg::String
+end
+
+struct Succ <: Value
+    succ
+end
+
+# bind :: (a -> m b) -> m a -> m b, or let's say
+# bind :: (a -> State) -> State -> State
 function bind(f::Function, s::State)::State
     State(tks -> begin
         ex, rst = s.run(tks)
-        if ex == nothing
-            return nothing, tks
+        if ex isa Fail
+            return ex, tks
         else
-            return f(ex).run(rst)
+            return f(ex.succ).run(rst)
         end
     end)
 end
@@ -22,7 +35,7 @@ function orelse(s1::State, s2::State)::State
     State(tks -> begin
         res = s1.run(tks)
         ex1, rst = res
-        if ex1 == nothing
+        if ex1 isa Fail
             return s2.run(tks)
         else
             return res
@@ -31,30 +44,38 @@ function orelse(s1::State, s2::State)::State
 end
 
 function seq(s1::State, s2::State)::State
-    State(tks -> begin
-        res = s1.run(tks)
-        ex1, rst = res
-        if ex1 == nothing
-            return nothing, tks
-        else
-            return s2.run(rst)
-        end
-    end)
+    bind(s1) do e1
+        s2
+    end
 end
 
-function combine(s1::State, s2::State)::State
+function jointRes(e1::Succ, e2::Succ)::Value
+    es1 = e1.succ
+    es2 = e2.succ
+    if es1 isa Array && es2 isa Array
+        return Succ(cat(es1, es2; dims=1))
+    elseif es1 isa Array
+        return Succ(cat(es1, [es2]; dims=1))
+    elseif es2 isa Array
+        return Succ(cat([es1], es2; dims=1))
+    else
+        return Succ([es1, es2])
+    end
+end
+
+function joint(s1::State, s2::State)::State
     State(tks -> begin
         res = s1.run(tks)
         ex1, rst = res
-        if ex1 == nothing
-            return nothing, tks
+        if ex1 isa Fail
+            return ex1, tks
         else
             res2 = s2.run(rst)
             ex2, rst2 = res2
-            if ex2 == nothing
-                return nothing, tks
+            if ex2 isa Fail
+                return ex2, rst
             else
-                return [ex1, ex2], rst2
+                return jointRes(ex1, ex2), rst2
             end
         end
     end)
@@ -64,17 +85,16 @@ function star_aux(s1::State, tks, acc::Array{})
     while true
         res = s1.run(tks)
         ex, rst = res
-        # println("ex=", string(ex), ",rst=", rst, ",tks=", tks)
-        println("acc=", acc, "tks=", tks)
-        sleep(.5)
-        if ex == nothing
+        # println("acc=", acc, ",tks=", tks, ",ex=", ex)
+        # sleep(.5)
+        if ex isa Fail
             break
         else
-            push!(acc, ex)
+            push!(acc, ex.succ)
             tks = rst
         end
     end
-    return acc, tks
+    return Succ(acc), tks
 end
 
 function star(s1::State)::State
@@ -85,19 +105,28 @@ function option(s1::State)::State
 end
 
 function plus(s1::State)::State
-    combine(s1, star(s1))
+    joint(s1, star(s1))
 end
 
 function char_parser(ch)::State
     State(tks -> begin
         if isempty(tks)
-            return nothing, tks
+            return Fail("empty"), tks
         elseif tks[1] == ch
-            return string(ch), tks[2:end]
+            return Succ(string(ch)), tks[2:end]
         else
-            return nothing, tks
+            return Fail("not match"), tks
         end
     end)
+end
+
+function char_range_parser(chs)::State
+    parsers = map(char_parser, chs)
+    px = parsers[1]
+    for p in parsers[2:end]
+        px = orelse(px, p)
+    end
+    return px
 end
 
 kwtbl = Dict(
@@ -158,17 +187,6 @@ function tokenize(text::AbstractString)
     return lst
 end
 
-function match_word(wd)
-    State(tks -> begin
-        tk = tks[1]
-        if tk == wd
-            return tk, tks[1:end]
-        else
-            throw(SyntaxError("expect " * wd * " found " * tk))
-        end
-    end)
-end
-
 function myparse(text::AbstractString)
     #toks = split(text)
     toks = tokenize(text)
@@ -176,32 +194,5 @@ function myparse(text::AbstractString)
     println(toks)
 end
 
-function test1()
-    res = myparse("""
-    if a < 5
-        println("small")
-    elseif a < 10
-        println("media")
-    else
-        println("big")
-    """)
-    #println("parsing result: ", res)
-end
 
-function test2()
-    chp = char_parser('a')
-    chstar = star(chp)
-    function aux(tks, parser)
-        res = parser.run(tks)
-        println("input=", tks, ",result=", res)
-    end
-    aux("aaab", star(chp))
-    aux("bcd", star(chp))
-    aux("aaab", plus(chp))
-    aux("bcd", plus(chp))
 end
-
-function main()
-end
-
-test2()
