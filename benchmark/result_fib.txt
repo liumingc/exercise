@@ -1,6 +1,7 @@
-nodejs: 11.96s
-mlton: 8.15s
-ocamlopt: 5.00s
-polyml: 6.76s
-julia: 5.04s
-scheme: 8.33s
+ocamlopt: 5.00
+julia: 5.04
+go: 6.34
+polyml: 6.76
+mlton: 8.15
+scheme: 8.33
+nodejs: 11.96
