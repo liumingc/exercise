@@ -1,7 +1,7 @@
 module Parsec
 
-export Value, Succ, Fail
-export bind, orelse, plus, star, char_parser, char_range_parser, joint, seq
+export Value, Succ, Fail, State
+export bind, orelse, plus, star, char_parser, char_range_parser, joint, seq, seqs
 
 struct State
     # run :: tokens -> expr, tokens
@@ -46,6 +46,16 @@ end
 function seq(s1::State, s2::State)::State
     bind(s1) do e1
         s2
+    end
+end
+
+function seqs(slst::Vector{})::State
+    if length(slst) == 0
+        State(tks -> (Succ(nothing), tks))
+    elseif length(slst) == 1
+        slst[1]
+    else
+        seq(slst[1], seqs(slst[2:end]))
     end
 end
 

@@ -39,6 +39,33 @@ function test2()
     res = aux("zbcd", joint(char_parser('z'),
                             plus(char_range_parser(['a', 'c', 'z', 'b']))))
     @test res == ["z", "b", "c"]
+
+    res = aux("zbcd", seq(char_parser('z'), seq(char_range_parser(['a', 'b', 'c']), char_parser('c'))))
+    @test res == "c"
+
+    # test seqs
+    res = aux("ixtyez", seqs([char_parser('i')]))
+    @test res == "i"
+
+    res = aux("ixtyez", seqs([
+                                char_parser('i'),
+                                char_parser('x'),
+                                char_parser('t'),
+                                char_parser('y'),
+                                char_parser('e'),
+                                char_parser('z')
+                             ]))
+    @test res == "z"
+
+    res = aux("ixtyez", seqs([]))
+    @test res == nothing
+
+    res = aux("ixtyez", seqs([
+        char_parser('i'),
+        char_parser('x'),
+        char_parser('e')
+    ]))
+    @test isa(res, Fail)
 end
 
 test2()
