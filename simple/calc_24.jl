@@ -35,7 +35,19 @@ function calc_24(cards, path)
         rst1 = filter1(elt -> elt != x, cards)
         for y in rst1
             for op in (+, -, *, /)
-                nx = floor(op(x, y))
+                nx = 0
+                if op == /
+                    if y == 0
+                        continue
+                    end
+                    nx, remain = divrem(x, y)
+                    if remain > 0
+                        continue
+                    end
+                else
+                    nx = op(x, y)
+                end
+                # nx = floor(op(x, y))
                 rst2 = filter1(elt -> elt != y, rst1)
                 # path = push!(path, (x, op, y))
                 lpath = cat(path, [(x, op, y)]; dims=1)
