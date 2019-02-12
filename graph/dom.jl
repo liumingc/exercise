@@ -89,6 +89,56 @@ function collect_dom(g::Graph)
     end
 end
 
+# pre condition: we have calc dom::Node->Set{Node}
+function idom_comp(g::Graph)
+    local_dom = Dict{Node, Set}()
+    for (n, doms) in dom
+        local_dom[n] = setdiff(doms, [n])
+    end
+
+    # make a copy to avoid side effects...
+    # tmp = copy(local_dom)
+    tmp = Dict{Node, Set}()
+    for (n, doms) in local_dom
+        tmp[n] = copy(doms)
+    end
+
+    for n in keys(local_dom)
+        if n in g.roots
+            continue
+        end
+        for d in tmp[n]
+            for x in setdiff(tmp[n], [d])
+                if x in tmp[d]
+                    setdiff!(local_dom[n], [x])
+                end
+            end
+        end
+    end
+
+    idom = Dict{Node, Node}()
+    for (n, doms) in local_dom
+        if length(doms) == 0
+            continue
+        end
+        #=
+        println("key=", n.name)
+        for d in doms
+            println(", d=", d.name)
+        end
+        =#
+        @assert length(doms) == 1
+        i, _ = iterate(doms)
+        idom[n] = i
+    end
+    #=
+    for (x, i) in idom
+        println(x.name, " =idom=> ", i.name)
+    end
+    =#
+    return idom
+end
+
 function main()
     g = make_data()
     # println("g=", g)
@@ -100,6 +150,8 @@ function main()
         end
         println("")
     end
+
+    idom_comp(g)
 end
 
 main()
