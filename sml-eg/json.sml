@@ -101,11 +101,7 @@ let
                 val (a, rst6) = parse rst5
               in
                 case key of
-                     JsStr k => (
-                        print ("key=" ^ k);
-                        TextIO.flushOut TextIO.stdOut;
-                        (SOME (k, a), rst6)
-                      )
+                     JsStr k => (SOME (k, a), rst6)
                     | _ => raise JsError "key not string!"
               end
             | _ => (NONE, rst1)
